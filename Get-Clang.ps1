@@ -13,7 +13,8 @@ deb-src http://apt.llvm.org/unstable/ llvm-toolchain-21 main
 "sudo apt-get update" | Invoke-Expression
 "sudo apt-get install -y clang-21" | Invoke-Expression
 
-sudo ln -sf /usr/bin/clang-21 /usr/bin/clang
-sudo ln -sf /usr/bin/clang++-21 /usr/bin/clang++
+New-Item -ItemType SymbolicLink -Path "/usr/bin/clang" -Target "/usr/bin/clang-21"
+
+New-Item -ItemType SymbolicLink -Path "/usr/bin/clang++" -Target "/usr/bin/clang++-21"
 
 "clang  --version" | Invoke-Expression

@@ -51,12 +51,18 @@ catch
 	exit 1
 }
 
+$prebuildpackages = @(
+	"bison", "meson", "ninja-build", "pkg-config",
+	"checkinstall", "equivs",
+	"libwayland-dev", "wayland-protocols"
+)
+
 $packages = @(
-	"cmake", "meson", "ninja-build", "pkg-config",
+	"cmake",
 	
-	"libdisplay-info-dev", "libdrm-dev", "libgbm-dev", "libgl1-mesa-dev", "libgles-dev", "libglaze-dev", "libinput-dev", 
-	"libpipewire-0.3-dev", "libsdbus-c++-dev", "libwayland-dev", "libxcursor-dev", <#"libxkbcommon-dev", #>"qt6-base-dev",
-	"qt6-declarative-dev", "qt6-declarative-private-dev", "qt6-wayland-dev", "qt6-wayland-private-dev", "wayland-protocols",
+	"libdisplay-info-dev", "libdrm-dev", "libgbm-dev", "libgl1-mesa-dev", "libgles-dev", "libglaze-dev", "libinput-dev",
+	"libpipewire-0.3-dev", "libsdbus-c++-dev", "libxcursor-dev", <#"libxkbcommon-dev", #>"qt6-base-dev",
+	"qt6-declarative-dev", "qt6-declarative-private-dev", "qt6-wayland-dev", "qt6-wayland-private-dev",
 	
 	"hwdata", "libcairo2-dev", "libmagic-dev", "libpixman-1-dev", "libpugixml-dev", "libre2-dev",
 	"librsvg2-dev", "libseat-dev", "libtomlplusplus-dev", "libudis86-dev", "libzip-dev",
@@ -137,12 +143,12 @@ function Build-Repository
 		switch ($repoName)
 		{
 			"libxkbcommon"
-            {
-                Write-Host "-> Configuring and building with Meson for libxkbcommon"
-                meson setup build -Denable-x11=false -Dxkb-config-root=/usr/share/X11/xkb -Dx-locale-root=/usr/share/X11/locale
-                if ($LASTEXITCODE -ne 0) { throw "meson setup failed for libxkbcommon" }
-                meson compile -C build
-            }
+			{
+				Write-Host "-> Configuring and building with Meson for libxkbcommon"
+				meson setup build -Denable-x11=false -Dxkb-config-root=/usr/share/X11/xkb -Dx-locale-root=/usr/share/X11/locale
+				if ($LASTEXITCODE -ne 0) { throw "meson setup failed for libxkbcommon" }
+				meson compile -C build
+			}
 			"hyprland-protocols"
 			{
 				Write-Host "-> Configuring and building with Meson"
@@ -183,7 +189,28 @@ function Build-Repository
 		
 		switch ($repoName)
 		{
-			"libxkbcommon"       { sudo meson   install -C build }
+			"libxkbcommon"
+			{
+				Write-Host "-> Installing libxkbcommon with checkinstall..."
+				sudo checkinstall --pkgname=libxkbcommon-git --pkgversion=1.11.0 --install=yes --nodoc meson install -C build 
+				if ($LASTEXITCODE -ne 0) { throw "checkinstall failed for libxkbcommon" }
+				Write-Host "-> Creating virtual packages with equivs..." -ForegroundColor Yellow
+				$equivsControlFileContent = @'
+Package: libxkbcommon-virtual
+Version: 1.11.0-custom1
+Section: misc
+Priority: optional
+Architecture: all
+Provides: libxkbcommon-dev, libxkbcommon0
+Description: Virtual package to satisfy apt dependencies for Hyprland's libxkbcommon build.
+ This package does not contain any files; it only exists to inform the package manager
+ that a newer version of libxkbcommon has been manually installed.
+'@
+				Set-Content -Path "equivs-control" -Value $equivsControlFileContent
+				sudo equivs-build "equivs-control"
+				sudo dpkg -i "libxkbcommon-*all.deb"
+				if ($LASTEXITCODE -ne 0) { throw "Failed to install virtual package" }
+			}
 			"hyprland-protocols" { sudo meson   install -C build }
 			"Hyprland"           { sudo make    install          }
 			default              { sudo cmake --install    build }
@@ -213,6 +240,14 @@ try
 	Write-Host "Package list updated successfully" -ForegroundColor Green
 	Write-Host ""
 
+	Write-Host "Installing pre-build dependencies..." -ForegroundColor Yellow
+	& sudo apt-get install -y -- $prebuildpackages
+	if ($LASTEXITCODE -ne 0) { throw "Some or all pre-build package installations failed. Please check the apt-get output above to identify the issue" }
+	Write-Host "Pre-build dependencies successfully installed!" -ForegroundColor Green
+
+	$nproc = (nproc)
+	Build-Repository -repoName "libxkbcommon"
+
 	Write-Host "Preparing to install the following dependency packages: " -ForegroundColor Yellow
 	$packages | ForEach-Object { Write-Host " - $_" }
 	Write-Host ""
@@ -223,8 +258,6 @@ try
 	if ($LASTEXITCODE -ne 0) { throw "Some or all package installations failed. Please check the apt-get output above to identify the issue" }
 	Write-Host ""
 	Write-Host "All dependencies have been successfully installed!" -ForegroundColor Green
-
-	$nproc = (nproc)
 
 	foreach ($repo in $repositories) { Build-Repository -repoName $repo }
 
