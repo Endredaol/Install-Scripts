@@ -55,7 +55,7 @@ $packages = @(
 	"cmake", "meson", "ninja-build", "pkg-config",
 	
 	"libdisplay-info-dev", "libdrm-dev", "libgbm-dev", "libgl1-mesa-dev", "libgles-dev", "libglaze-dev", "libinput-dev", 
-	"libpipewire-0.3-dev", "libsdbus-c++-dev", "libwayland-dev", "libxcursor-dev", "libxkbcommon-dev", "qt6-base-dev",
+	"libpipewire-0.3-dev", "libsdbus-c++-dev", "libwayland-dev", "libxcursor-dev", <#"libxkbcommon-dev", #>"qt6-base-dev",
 	"qt6-declarative-dev", "qt6-declarative-private-dev", "qt6-wayland-dev", "qt6-wayland-private-dev", "wayland-protocols",
 	
 	"hwdata", "libcairo2-dev", "libmagic-dev", "libpixman-1-dev", "libpugixml-dev", "libre2-dev",
@@ -106,28 +106,43 @@ function Build-Repository
 	{
 		Write-Host "-> Cloning repo..."
 		
-		if ($repoName -eq "hyprland-qtutils")
+		switch ($repoName)
 		{
-			git clone "https://github.com/hyprwm/$repoName"
-			if ($LASTEXITCODE -ne 0) { throw "Clone failed for $repoName" }
-			Set-Location $repoName
-			
-			Write-Host "-> Found hyprland-qtutils. Checking out specific commit..."
-			git checkout 119bcb9aa742658107b326c50dcd24ab59b309b7
-			if ($LASTEXITCODE -ne 0) { throw "Git checkout failed for hyprland-qtutils" }
-			Write-Host "-> Successfully checked out to stable commit."
-		}
-		else
-		{
-			git clone --depth=1 "https://github.com/hyprwm/$repoName"
-			if ($LASTEXITCODE -ne 0) { throw "Clone failed for $repoName" }
-			Set-Location $repoName
+			"hyprland-qtutils" 
+			{
+				git clone "https://github.com/hyprwm/$repoName"
+				if ($LASTEXITCODE -ne 0) { throw "Clone failed for $repoName" }
+				Set-Location $repoName
+				
+				Write-Host "-> Found hyprland-qtutils. Checking out specific commit..."
+				git checkout 119bcb9aa742658107b326c50dcd24ab59b309b7
+				if ($LASTEXITCODE -ne 0) { throw "Git checkout failed for hyprland-qtutils" }
+				Write-Host "-> Successfully checked out to stable commit."
+			}
+			"libxkbcommon" 
+			{
+				git clone --depth=1 "https://github.com/xkbcommon/$repoName"
+				if ($LASTEXITCODE -ne 0) { throw "Clone failed for $repoName" }
+				Set-Location $repoName
+			}
+			default {
+				git clone --depth=1 "https://github.com/hyprwm/$repoName"
+				if ($LASTEXITCODE -ne 0) { throw "Clone failed for $repoName" }
+				Set-Location $repoName
+			}
 		}
 
 		Write-Host "-> Configuring & building..."
 		
 		switch ($repoName)
 		{
+			"libxkbcommon"
+            {
+                Write-Host "-> Configuring and building with Meson for libxkbcommon"
+                meson setup build -Denable-x11=false -Dxkb-config-root=/usr/share/X11/xkb -Dx-locale-root=/usr/share/X11/locale
+                if ($LASTEXITCODE -ne 0) { throw "meson setup failed for libxkbcommon" }
+                meson compile -C build
+            }
 			"hyprland-protocols"
 			{
 				Write-Host "-> Configuring and building with Meson"
@@ -168,9 +183,10 @@ function Build-Repository
 		
 		switch ($repoName)
 		{
+			"libxkbcommon"       { sudo meson   install -C build }
 			"hyprland-protocols" { sudo meson   install -C build }
-			"Hyprland"           { sudo make    install }
-			default              { sudo cmake --install build }
+			"Hyprland"           { sudo make    install          }
+			default              { sudo cmake --install    build }
 		}
 
 		if ($LASTEXITCODE -ne 0) { throw "Installation of $repoName failed" }
