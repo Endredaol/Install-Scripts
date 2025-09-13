@@ -52,15 +52,11 @@ catch
 }
 
 $packages = @(
-	"clang", "cmake", "meson", "ninja-build", "pkg-config",
+	"cmake", "meson", "ninja-build", "pkg-config",
 	
 	"libdisplay-info-dev", "libdrm-dev", "libgbm-dev", "libgl1-mesa-dev", "libgles-dev", "libglaze-dev", "libinput-dev", 
 	"libpipewire-0.3-dev", "libsdbus-c++-dev", "libwayland-dev", "libxcursor-dev", "libxkbcommon-dev", "qt6-base-dev",
-<<<<<<< HEAD
-	"qt6-declarative-dev", "qt6-declarative-private-dev", "wayland-protocols",
-=======
 	"qt6-declarative-dev", "qt6-declarative-private-dev", "qt6-wayland-dev", "qt6-wayland-private-dev", "wayland-protocols",
->>>>>>> add pwsh download file
 	
 	"hwdata", "libcairo2-dev", "libmagic-dev", "libpixman-1-dev", "libpugixml-dev", "libre2-dev",
 	"librsvg2-dev", "libseat-dev", "libtomlplusplus-dev", "libudis86-dev", "libzip-dev",
@@ -69,12 +65,8 @@ $packages = @(
 	
 	"libxcb-composite0-dev", "libxcb-errors-dev", "libxcb-icccm4-dev", "libxcb-res0-dev", "libxcb-xfixes0-dev",
 	
-<<<<<<< HEAD
-	"emacs-pgtk", "fonts-noto-cjk", "kitty", "mako-notifier", "obs-studio", "tofi", "udisks2", "waybar", "xdg-desktop-portal"
-=======
 	"emacs-pgtk", "fonts-noto-cjk", "kitty", "mako-notifier", "obs-studio", "tofi", "udisks2", "waybar", "xdg-desktop-portal",
 	"lsb-release", "software-properties-common"
->>>>>>> add pwsh download file
 )
 
 $hyprland_build_dir = "hyprland-build"
