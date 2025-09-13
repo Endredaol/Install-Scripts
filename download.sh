@@ -1,1 +1,5 @@
-wget https://github.com/PowerShell/PowerShell/releases/download/v7.6.0-preview.4/powershell-preview_7.6.0-preview.4-1.deb_amd64.deb
+wget https://github.com/PowerShell/PowerShell/releases/download/v7.6.0-preview.4/powershell-preview_7.6.0-preview.4-1.deb_amd64.debs
+
+sudo apt-get install libicu72
+
+sudo dpkg -i powershell-*.deb
