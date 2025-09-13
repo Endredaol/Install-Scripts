@@ -39,7 +39,7 @@ try
 	if (-not (Get-Command sudo -ErrorAction SilentlyContinue)) 
 	{ throw "sudo command not found. Please ensure sudo is installed on your system and the current user has execution permissions" }
 
-	if (-not (Get-Command git  -ErrorAction SilentlyContinue)) 
+	if (-not (Get-Command git -ErrorAction SilentlyContinue)) 
 	{ throw "git command not found. Please install git first" }
 
 	Write-Host "Pre-inspection cleared" -ForegroundColor Green
@@ -105,9 +105,24 @@ function Build-Repository
 	try
 	{
 		Write-Host "-> Cloning repo..."
-		git clone --depth=1 "https://github.com/hyprwm/$repoName"
-		if ($LASTEXITCODE -ne 0) { throw "Clone failed for $repoName" }
-		Set-Location $repoName
+		
+		if ($repoName -eq "hyprland-qtutils")
+		{
+			git clone "https://github.com/hyprwm/$repoName"
+			if ($LASTEXITCODE -ne 0) { throw "Clone failed for $repoName" }
+			Set-Location $repoName
+			
+			Write-Host "-> Found hyprland-qtutils. Checking out specific commit..."
+			git checkout 119bcb9aa742658107b326c50dcd24ab59b309b7
+			if ($LASTEXITCODE -ne 0) { throw "Git checkout failed for hyprland-qtutils" }
+			Write-Host "-> Successfully checked out to stable commit."
+		}
+		else
+		{
+			git clone --depth=1 "https://github.com/hyprwm/$repoName"
+			if ($LASTEXITCODE -ne 0) { throw "Clone failed for $repoName" }
+			Set-Location $repoName
+		}
 
 		Write-Host "-> Configuring & building..."
 		
