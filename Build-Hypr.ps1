@@ -192,7 +192,8 @@ function Build-Repository
 			"libxkbcommon"
 			{	
 				Write-Host "-> Installing libxkbcommon with checkinstall..."
-				sudo checkinstall --pkgname=libxkbcommon-git --pkgversion=1.11.0 --install=yes --nodoc -- ninja -C install build
+				sudo meson install -C build
+				sudo checkinstall --pkgname=libxkbcommon-git --pkgversion=1.11.0 --install=yes --nodoc -- meson install -C build
 				if ($LASTEXITCODE -ne 0) { throw "checkinstall failed for libxkbcommon" }
 				Write-Host "-> Creating virtual packages with equivs..." -ForegroundColor Yellow
 				$equivsControlFileContent = @'
@@ -208,7 +209,8 @@ Description: Virtual package to satisfy apt dependencies for Hyprland's libxkbco
 '@
 				Set-Content -Path "equivs-control" -Value $equivsControlFileContent
 				sudo equivs-build "equivs-control"
-				sudo dpkg -i "libxkbcommon-*all.deb"
+				$debPackagePath = (Get-ChildItem -Path . -Filter "libxkbcommon-virtual*.deb").FullName
+				sudo dpkg -i "$debPackagePath"
 				if ($LASTEXITCODE -ne 0) { throw "Failed to install virtual package" }
 			}
 			"hyprland-protocols" { sudo meson   install -C build }
