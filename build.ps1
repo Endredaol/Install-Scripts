@@ -65,8 +65,8 @@ $packages = @(
 	
 	"libxcb-composite0-dev", "libxcb-errors-dev", "libxcb-icccm4-dev", "libxcb-res0-dev", "libxcb-xfixes0-dev",
 	
-	"emacs-pgtk", "fonts-noto-cjk", "kitty", "mako-notifier", "obs-studio", "tofi", "udisks2", "waybar", "xdg-desktop-portal",
-	"lsb-release", "software-properties-common"
+	"emacs-pgtk", "fonts-noto-cjk", "kitty", "mako-notifier", "obs-studio", "tofi", "udisks2", "waybar", "xdg-desktop-portal"
+	#"lsb-release", "software-properties-common"
 )
 
 $hyprland_build_dir = "hyprland-build"
