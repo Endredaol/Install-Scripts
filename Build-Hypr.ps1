@@ -190,9 +190,9 @@ function Build-Repository
 		switch ($repoName)
 		{
 			"libxkbcommon"
-			{
+			{	
 				Write-Host "-> Installing libxkbcommon with checkinstall..."
-				sudo checkinstall --pkgname=libxkbcommon-git --pkgversion=1.11.0 --install=yes --nodoc meson install -C build 
+				sudo checkinstall --pkgname=libxkbcommon-git --pkgversion=1.11.0 --install=yes --nodoc -- ninja -C install build
 				if ($LASTEXITCODE -ne 0) { throw "checkinstall failed for libxkbcommon" }
 				Write-Host "-> Creating virtual packages with equivs..." -ForegroundColor Yellow
 				$equivsControlFileContent = @'
