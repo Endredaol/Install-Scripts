@@ -201,8 +201,10 @@ Package: libxkbcommon-virtual
 Version: 1.11.0-custom1
 Section: misc
 Priority: optional
-Architecture: all
+Architecture: amd64
 Provides: libxkbcommon-dev, libxkbcommon0
+Conflicts: libxkbcommon-dev, libxkbcommon0
+Replaces: libxkbcommon-dev, libxkbcommon0
 Description: Virtual package to satisfy apt dependencies for Hyprland's libxkbcommon build.
  This package does not contain any files; it only exists to inform the package manager
  that a newer version of libxkbcommon has been manually installed.
