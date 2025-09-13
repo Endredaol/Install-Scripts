@@ -193,9 +193,9 @@ function Build-Repository
 			{	
 				Write-Host "-> Installing libxkbcommon with checkinstall..."
 				sudo meson install -C build
-				sudo checkinstall --pkgname=libxkbcommon-git --pkgversion=1.11.0 --install=yes --nodoc -- meson install -C build
+				sudo checkinstall -y --pkgname=libxkbcommon-git --pkgversion=1.11.0 --install=yes --nodoc -- meson install -C build
 				if ($LASTEXITCODE -ne 0) { throw "checkinstall failed for libxkbcommon" }
-				Write-Host "-> Creating virtual packages with equivs..." -ForegroundColor Yellow
+<#				Write-Host "-> Creating virtual packages with equivs..." -ForegroundColor Yellow
 				$equivsControlFileContent = @'
 Package: libxkbcommon-virtual
 Version: 1.11.0-custom1
@@ -213,7 +213,46 @@ Description: Virtual package to satisfy apt dependencies for Hyprland's libxkbco
 				sudo equivs-build "equivs-control"
 				$debPackagePath = (Get-ChildItem -Path . -Filter "libxkbcommon-virtual*.deb").FullName
 				sudo dpkg -i "$debPackagePath"
-				if ($LASTEXITCODE -ne 0) { throw "Failed to install virtual package" }
+				if ($LASTEXITCODE -ne 0) { throw "Failed to install virtual package" }#>
+				Write-Host "-> Creating virtual packages with equivs..." -ForegroundColor Yellow
+
+				# 创建 libxkbcommon-dev 虚拟包
+				$devControlFileContent = @'
+Package: libxkbcommon-dev
+Version: 1.11.0-custom1
+Section: misc
+Priority: optional
+Architecture: amd64
+Provides: libxkbcommon-dev
+Description: Virtual package to satisfy apt dependencies for Hyprland's libxkbcommon-dev build.
+ This package does not contain any files; it only exists to inform the package manager
+ that a newer version of libxkbcommon-dev has been manually installed.
+'@
+				Set-Content -Path "equivs-control-dev" -Value $devControlFileContent
+				sudo equivs-build "equivs-control-dev"
+				$devDebPackagePath = (Get-ChildItem -Path . -Filter "libxkbcommon-dev*.deb").FullName
+				sudo dpkg -i "$devDebPackagePath"
+				if ($LASTEXITCODE -ne 0) { throw "Failed to install libxkbcommon-dev virtual package" }
+
+				# 创建 libxkbcommon0 虚拟包
+				$libControlFileContent = @'
+Package: libxkbcommon0
+Version: 1.11.0-custom1
+Section: misc
+Priority: optional
+Architecture: amd64
+Provides: libxkbcommon0
+Conflicts: libxkbcommon0
+Replaces: libxkbcommon0
+Description: Virtual package to satisfy apt dependencies for Hyprland's libxkbcommon0 build.
+ This package does not contain any files; it only exists to inform the package manager
+ that a newer version of libxkbcommon0 has been manually installed.
+'@
+				Set-Content -Path "equivs-control-lib" -Value $libControlFileContent
+				sudo equivs-build "equivs-control-lib"
+				$libDebPackagePath = (Get-ChildItem -Path . -Filter "libxkbcommon0*.deb").FullName
+				sudo dpkg -i "$libDebPackagePath"
+				if ($LASTEXITCODE -ne 0) { throw "Failed to install libxkbcommon0 virtual package" }
 			}
 			"hyprland-protocols" { sudo meson   install -C build }
 			"Hyprland"           { sudo make    install          }
