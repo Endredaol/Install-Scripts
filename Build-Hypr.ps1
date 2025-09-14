@@ -189,32 +189,7 @@ function Build-Repository
 		
 		switch ($repoName)
 		{
-			"libxkbcommon"
-			{	
-				Write-Host "-> Installing libxkbcommon with checkinstall..."
-				sudo meson install -C build
-				sudo checkinstall -y --pkgname=libxkbcommon-git --pkgversion=1.11.0 --install=yes --nodoc -- meson install -C build
-				if ($LASTEXITCODE -ne 0) { throw "checkinstall failed for libxkbcommon" }
-				Write-Host "-> Creating virtual packages with equivs..." -ForegroundColor Yellow
-				$equivsControlFileContent = @'
-Package: libxkbcommon-virtual
-Version: 1.11.0-custom1
-Section: misc
-Priority: optional
-Architecture: amd64
-Provides: libxkbcommon-dev, libxkbcommon0
-Conflicts: libxkbcommon-dev, libxkbcommon0
-Replaces: libxkbcommon-dev, libxkbcommon0
-Description: Virtual package to satisfy apt dependencies for Hyprland's libxkbcommon build.
- This package does not contain any files; it only exists to inform the package manager
- that a newer version of libxkbcommon has been manually installed.
-'@
-				Set-Content -Path "equivs-control" -Value $equivsControlFileContent
-				sudo equivs-build "equivs-control"
-				$debPackagePath = (Get-ChildItem -Path . -Filter "libxkbcommon-virtual*.deb").FullName
-				sudo dpkg -i "$debPackagePath"
-				if ($LASTEXITCODE -ne 0) { throw "Failed to install virtual package" }
-			}
+			"libxkbcommon"       { sudo meson   install -C build }
 			"hyprland-protocols" { sudo meson   install -C build }
 			"Hyprland"           { sudo make    install          }
 			default              { sudo cmake --install    build }
